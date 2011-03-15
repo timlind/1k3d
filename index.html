@@ -1,0 +1,91 @@
+<!doctype html> 
+<html> 
+	<head> 
+		<title>JS1k, 1k demo submission [ID]</title> 
+		<meta charset="utf-8" /> 
+		<style>
+		/* * { -webkit-transition-property: -webkit-transform; -webkit-transition-duration: 500ms; -webkit-transition-function: ease; } */
+		body {overflow:hidden; background: ;}
+		</style>
+	</head> 
+	<body> 
+		<canvas id="c"></canvas> 
+		<script> 
+			var d = document;
+			var b = document.body;
+			var c = document.getElementsByTagName('canvas')[0];
+			var a = c.getContext('2d');
+			document.body.clientWidth; // fix bug in webkit: http://qfox.nl/weblog/218
+		</script> 
+		<script>
+		
+		/* the viewer's position */
+		// available globally so that the existing value can be referenced, must use view() to update the actual view
+		var v = { x: 0, y: 0, z: 0 }
+		
+		/* create a box of size 100 x 100, then position it at x,y,z */
+		function box(x,y,z) {
+			var el = document.createElement('div')
+			el.style.position = 'absolute'
+			el.style.width = 100 + 'px'
+			el.style.height = 100 + 'px'
+			b.appendChild(el)
+			move(el,x,y,z)
+			return el
+		}
+		
+		/* position an element at x,y,z */
+		function move(el,x,y,z) {
+			el.x = x
+			el.y = y
+			el.z = z
+			el.style.top = Math.round(y) + 'px';
+			el.style.right = Math.round(x) + 'px';
+			el.style.zIndex = Math.round(z * 100)
+			el.style.background = 'rgba(150,150,150,0.2)'
+			//el.style.background = 'rgb('+Math.round(x)+','+Math.round(y)+','+Math.round(z)+')'
+			//el.style.webkitBoxShadow = 'gray 1px 1px 10px'
+			el.style.border = '1px solid silver';
+		}
+		
+		/* update the view to a new view position */
+		function view(x,y,z) {
+			v.x = x; v.y = y; v.z = z;
+			// we must update each element's transformation
+			for (var i = 0; i < b.children.length; i++) {
+				var el = b.children[i];
+				//md = Math.abs(el.z + vz - ((vx / d.width)))
+				
+				// how do we actually calculate the element's transformation??
+				var md = (el.z * (1 + v.z))
+				el.style.webkitTransform = 'matrix(' + md + ', 0, 0, ' + md + ', ' + v.x * (el.z /* + v.z */) + ',' + v.y * (el.z /* + v.z */) + ')'
+			}
+		}
+		
+		/* create ten boxes (of the same size) directly behind each other,
+			with equal z spacing between each box. */
+		for (var i = 0; i < 10; i++)
+			box(700, 300, 0.5 + 0.2 * i)
+		
+		/* set and update the screen to the initial view position. */
+		view(v.x,v.y,v.z)
+		
+		/* move the view position by the same amount of pixels as the mouse moves from the center of the scene. */
+		d.addEventListener('mousemove', function(e) {
+			view (((d.width / 2) - e.clientX), ((d.height / 2) - e.clientY), v.z)
+		}, true)
+		
+		/* holding the mouse down moves the z position forward. */
+		var moving
+		d.addEventListener('mousedown', function() {
+			moving = setInterval(function() {
+				v.z += 0.01;
+				view(v.x,v.y,v.z)
+			}, 30)
+		})		
+		d.addEventListener('mouseup', function() {
+			clearInterval(moving)
+		})
+		</script> 
+	</body> 
+</html>
